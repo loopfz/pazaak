@@ -26,6 +26,8 @@ func main() {
 		fallbackTarget = 17
 	}
 
+	commitCardsToFallback := (game.Opponent.RoundWins == 2)
+
 	if game.Opponent.Stand {
 		if game.Opponent.BoardValue == 20 {
 			target = 20
@@ -39,14 +41,13 @@ func main() {
 	if matchTarget(game.CurrentPlayer.BoardValue, target) {
 		move.Stand = true
 	} else {
-
 		handCard, flip := findCard(game, target)
 		if handCard != "" {
 			playCard(handCard, flip, move)
 		} else {
 			if matchTarget(game.CurrentPlayer.BoardValue, fallbackTarget) {
 				move.Stand = true
-			} else {
+			} else if commitCardsToFallback {
 				handCard, flip = findCard(game, fallbackTarget)
 				if handCard != "" {
 					playCard(handCard, flip, move)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/loopfz/pazaak/pazaakcli/pazaak"
 	"github.com/loopfz/pazaak/pazaakcli/player"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -14,7 +15,12 @@ func main() {
 	var playerList arrayFlags
 	flag.Var(&playerList, "player", "player program path")
 	statsFile := flag.String("stats", "", "stats file")
+	quiet := flag.Bool("quiet", false, "no logs")
 	flag.Parse()
+
+	if *quiet {
+		logrus.SetLevel(logrus.ErrorLevel)
+	}
 
 	var pl []*player.Player
 	for _, p := range playerList {
