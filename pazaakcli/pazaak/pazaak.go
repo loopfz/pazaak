@@ -22,7 +22,9 @@ const (
 	MAX_BOARD_VALUE = 20
 	MAX_ROUND_WINS  = 3
 
-	AUTO_SIDEDECK = "auto"
+	AUTO_SIDEDECK   = "auto"
+	SIMPLE_SIDEDECK = "auto-simple"
+	FLIP_SIDEDECK   = "auto-flip"
 )
 
 type PazaakGame struct {
@@ -184,11 +186,13 @@ func (g *PazaakGame) NewMove() player.PlayerMove {
 	return &PazaakMove{}
 }
 
-func buildRandomSideDeck() []string {
+func buildRandomSideDeck(includeSimple, includeFlip bool) []string {
 	var ret []string
 	keys := []string{}
-	for k, _ := range knownCards {
-		keys = append(keys, k)
+	for k, c := range knownCards {
+		if (c.Flip && includeFlip) || (!c.Flip && includeSimple) {
+			keys = append(keys, k)
+		}
 	}
 	for i := 0; i < SIDEDECK_SIZE; i++ {
 		ret = append(ret, keys[rand.Intn(len(keys))])
@@ -202,9 +206,14 @@ func (g *PazaakGame) InitPlayerSideDecks() error {
 		s, _ := reader.ReadString('\n')
 		s = strings.TrimSpace(s)
 		var cards []string
-		if s == AUTO_SIDEDECK {
-			cards = buildRandomSideDeck()
-		} else {
+		switch s {
+		case AUTO_SIDEDECK:
+			cards = buildRandomSideDeck(true, true)
+		case SIMPLE_SIDEDECK:
+			cards = buildRandomSideDeck(true, false)
+		case FLIP_SIDEDECK:
+			cards = buildRandomSideDeck(false, true)
+		default:
 			cards = strings.Split(s, ",")
 		}
 		if len(cards) != SIDEDECK_SIZE {

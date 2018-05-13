@@ -1,0 +1,37 @@
+These card values were computed from raw statistics obtained via pazaakcli.
+
+The same test agent was made to play against itself with random side decks, over a period of 10 hours.
+Every card contained in a match winner's initial hand got +1, every card in the loser's initial hand got -1.
+Very roughly, these scores represent the tendency of hands containing a given card to win a match.
+
+RANK S
++-2     19946
++-3     17417
++-4     12342
+
+RANK A
++-5     9533
++-1     9481
++-6     8252
+
+RANK B
+-4      6225
+-3      5990
+-5      5097
+
+RANK C
+-2      4280
+-6      1914
+
+RANK D
+-1      -3478
++2      -8046
+
+RANK E
++3      -11427
++4      -14644
+
+RANK F
++5      -17115
++6      -19254
++1      -26513

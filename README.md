@@ -49,4 +49,5 @@ EOF
 ### Statistical analysis
 
 The conclusions drawn from analysis conducted using the command-line engine will be provided in the form of a report file.
-Analysis still ongoing.
+
+See **side_deck_card_rank.txt** for a rough early analysis of side deck card value. More to come.
