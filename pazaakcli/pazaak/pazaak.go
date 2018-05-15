@@ -42,7 +42,7 @@ type PazaakGame struct {
 }
 
 type PazaakPlayer struct {
-	player.Player
+	player.Player `json:"-"`
 
 	Number int `json:"number"`
 
@@ -77,6 +77,25 @@ type Stats struct {
 	Score map[string]int `json:"score"`
 }
 
+type SidedeckHandler interface {
+	GetDecks() [2]string
+}
+
+type StdinSidedeckHandler struct{}
+
+func (s StdinSidedeckHandler) GetDecks() [2]string {
+	reader := bufio.NewReader(os.Stdin)
+	s1, _ := reader.ReadString('\n')
+	s2, _ := reader.ReadString('\n')
+	return [2]string{strings.TrimSpace(s1), strings.TrimSpace(s2)}
+}
+
+type AutoSidedeckHandler struct{}
+
+func (a AutoSidedeckHandler) GetDecks() [2]string {
+	return [2]string{"auto", "auto"}
+}
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
@@ -85,7 +104,7 @@ func (m *PazaakMove) Valid() error {
 	return nil
 }
 
-func NewGame(pl []player.Player, statsFile string) (*PazaakGame, error) {
+func NewGame(pl []player.Player, statsFile string, sdh SidedeckHandler) (*PazaakGame, error) {
 
 	g := &PazaakGame{StatsFile: statsFile}
 
@@ -97,7 +116,7 @@ func NewGame(pl []player.Player, statsFile string) (*PazaakGame, error) {
 		return nil, errors.New("Player count should be 2")
 	}
 
-	err := g.InitPlayerSideDecks()
+	err := g.InitPlayerSideDecks(sdh)
 	if err != nil {
 		return nil, err
 	}
@@ -232,11 +251,10 @@ func buildRandomSideDeck(includeSimple, includeFlip bool) []string {
 	return ret
 }
 
-func (g *PazaakGame) InitPlayerSideDecks() error {
-	reader := bufio.NewReader(os.Stdin)
-	for _, p := range g.Players {
-		s, _ := reader.ReadString('\n')
-		s = strings.TrimSpace(s)
+func (g *PazaakGame) InitPlayerSideDecks(sdh SidedeckHandler) error {
+	decks := sdh.GetDecks()
+	for i, p := range g.Players {
+		s := strings.TrimSpace(decks[i])
 		var cards []string
 		switch s {
 		case AUTO_SIDEDECK:

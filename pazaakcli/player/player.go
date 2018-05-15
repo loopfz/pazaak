@@ -15,6 +15,8 @@ import (
 
 const (
 	PLAYER_TIMEOUT = 5 * time.Second
+
+	ASYNC_TIMEOUT = 5 * time.Minute
 )
 
 type Player interface {
@@ -113,6 +115,13 @@ type AsyncPlayer struct {
 	respChan  chan PlayerMove
 }
 
+func NewAsyncPlayer() *AsyncPlayer {
+	return &AsyncPlayer{
+		gameState: []byte(`{}`),
+		respChan:  make(chan PlayerMove),
+	}
+}
+
 func (ap *AsyncPlayer) GetMove(g GameEngine) (PlayerMove, error) {
 
 	ap.mut.Lock()
@@ -122,14 +131,14 @@ func (ap *AsyncPlayer) GetMove(g GameEngine) (PlayerMove, error) {
 	}
 	ap.gameState = rawG
 	ap.g = g
-	deadline := time.Now().Add(1 * time.Minute)
+	deadline := time.Now().Add(ASYNC_TIMEOUT)
 	ap.deadline = deadline
 	ch := ap.respChan
 	ap.mut.Unlock()
 	select {
 	case resp := <-ch:
 		return resp, nil
-	case <-time.After(1 * time.Minute):
+	case <-time.After(ASYNC_TIMEOUT):
 	}
 
 	return nil, errors.New("human timeout")
@@ -148,6 +157,9 @@ func (ap *AsyncPlayer) DoMove(r *http.Request) error {
 	}
 	ap.mut.Lock()
 	defer ap.mut.Unlock()
+	if ap.g == nil {
+		return errors.New("game has not started!")
+	}
 	move := ap.g.NewMove()
 	err = json.Unmarshal(body, move)
 	if err != nil {
@@ -164,4 +176,8 @@ func (ap *AsyncPlayer) DoMove(r *http.Request) error {
 	}
 
 	return errors.New("too late to play!")
+}
+
+func (ap *AsyncPlayer) String() string {
+	return "human"
 }

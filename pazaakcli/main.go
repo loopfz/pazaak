@@ -27,7 +27,7 @@ func main() {
 		pl = append(pl, player.NewForkPlayer(p))
 	}
 
-	g, err := pazaak.NewGame(pl, *statsFile)
+	g, err := pazaak.NewGame(pl, *statsFile, pazaak.StdinSidedeckHandler{})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "[ERROR] %s\n", err)
 		os.Exit(1)
