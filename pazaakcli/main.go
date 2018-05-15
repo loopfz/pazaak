@@ -22,7 +22,7 @@ func main() {
 		logrus.SetLevel(logrus.ErrorLevel)
 	}
 
-	var pl []*player.Player
+	var pl []player.Player
 	for _, p := range playerList {
 		pl = append(pl, player.NewForkPlayer(p))
 	}

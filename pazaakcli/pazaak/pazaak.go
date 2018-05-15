@@ -42,7 +42,9 @@ type PazaakGame struct {
 }
 
 type PazaakPlayer struct {
-	*player.Player
+	player.Player
+
+	Number int `json:"number"`
 
 	// Not reset between rounds
 	SideDeck    []*PazaakCard `json:"-"`
@@ -83,13 +85,12 @@ func (m *PazaakMove) Valid() error {
 	return nil
 }
 
-func NewGame(pl []*player.Player, statsFile string) (*PazaakGame, error) {
+func NewGame(pl []player.Player, statsFile string) (*PazaakGame, error) {
 
 	g := &PazaakGame{StatsFile: statsFile}
 
 	for _, p := range pl {
-		p.Number = uint(len(g.Players) + 1)
-		g.Players = append(g.Players, &PazaakPlayer{Player: p})
+		g.Players = append(g.Players, &PazaakPlayer{Player: p, Number: len(g.Players) + 1})
 	}
 
 	if len(g.Players) != 2 {
@@ -466,5 +467,5 @@ func (p PazaakPlayer) String() string {
 	for _, c := range p.Hand {
 		hand = append(hand, c.Identifier)
 	}
-	return fmt.Sprintf("%s [%d] {%v}", p.Player, p.BoardValue, hand)
+	return fmt.Sprintf("%d (%s) [%d] {%v}", p.Number, p.Player, p.BoardValue, hand)
 }
