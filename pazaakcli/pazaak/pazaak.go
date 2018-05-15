@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -20,11 +21,16 @@ const (
 	HAND_SIZE       = 4
 	MAX_BOARD_SIZE  = 9
 	MAX_BOARD_VALUE = 20
-	MAX_ROUND_WINS  = 3
 
 	AUTO_SIDEDECK   = "auto"
 	SIMPLE_SIDEDECK = "auto-simple"
 	FLIP_SIDEDECK   = "auto-flip"
+)
+
+var (
+	p1ForceValue = flag.Int("p1-force-value", 0, "Rig the player 1 deck to force a given value to occur")
+
+	RoundLimit = flag.Int("round-limit", 3, "Number of winning rounds per match")
 )
 
 type PazaakGame struct {
@@ -182,6 +188,31 @@ func NewPazaakDeck() []*PazaakCard {
 	return ret
 }
 
+func NewPazaakDeckRigged(value int) []*PazaakCard {
+	deck := NewPazaakDeck()
+	prefix := []*PazaakCard{}
+	for value > 0 {
+		max := 0
+		var maxC *PazaakCard
+		j := 0
+		for i, c := range deck {
+			if c.Value <= value && c.Value > max {
+				max = c.Value
+				maxC = deck[i]
+				j = i
+			}
+		}
+		if maxC == nil {
+			panic("failed to rig deck")
+		}
+		prefix = append(prefix, maxC)
+		deck[j] = deck[len(deck)-1]
+		deck = deck[:len(deck)-1]
+		value -= maxC.Value
+	}
+	return append(prefix, deck...)
+}
+
 func (g *PazaakGame) NewMove() player.PlayerMove {
 	return &PazaakMove{}
 }
@@ -263,7 +294,11 @@ GAMELOOP:
 
 		// reset round stuff
 		for _, p := range g.Players {
-			p.Deck = NewPazaakDeck()
+			if p.Number == 1 && *p1ForceValue != 0 {
+				p.Deck = NewPazaakDeckRigged(*p1ForceValue)
+			} else {
+				p.Deck = NewPazaakDeck()
+			}
 			p.Board = nil
 			p.BoardValue = 0
 			p.Stand = false
@@ -322,7 +357,7 @@ GAMELOOP:
 			}
 		}
 		for _, p := range g.Players {
-			if p.RoundWins >= MAX_ROUND_WINS {
+			if p.RoundWins >= *RoundLimit {
 				p.Winner = true
 				g.CurrentPlayer = PazaakPlayer{}
 				g.Opponent = PazaakPlayer{}

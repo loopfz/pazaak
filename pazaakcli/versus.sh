@@ -23,13 +23,24 @@ if [ -z "$COUNT" ]; then
     COUNT=100
 fi
 
+if [ -z "$ROUNDS" ]; then
+    ROUNDS=3
+fi
+
+# use this to rig the deck and give a certain value naturally to player 1
+# this combined with "agentstand" implementations which just draw and stand
+# can help you crunch natural drawing odds
+if [ -z "$P1VALUE" ]; then
+    P1VALUE=0
+fi
+
 SCORE1=0
 SCORE2=0
 
 for i in $(seq $COUNT)
 do
     echo Running game $i...
-    ./pazaakcli --quiet -player $PLAYER1 -player $PLAYER2 <<EOF
+    ./pazaakcli --quiet -player $PLAYER1 -player $PLAYER2 --round-limit $ROUNDS -p1-force-value $P1VALUE <<EOF
 $DECK1
 $DECK2
 EOF
